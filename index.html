@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess The Tamil Movie</title>
+    <link rel="icon" type="image/x-icon" href="img/favicon.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"></script>
+    <style>
+        * {
+            user-select: none;
+        }
+        html {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        body {
+            background-color: rgb(15, 17, 33);
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        html::-webkit-scrollbar {
+            display: none;
+        }
+
+        .row { display: flex; flex-direction: row; }
+        .column { display: flex; flex-direction: column; }
+
+        .container {
+            width: fit-content;
+            min-width: 48vw;
+            transform: scale(1.2);
+            color: rgb(136, 142, 182);
+        }
+
+        .container2 {
+            background-color:rgb(33, 37, 67);
+            padding: 2vh;
+            padding-top: 0;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            border: 0.1rem solid rgb(136, 142, 182);
+        }
+
+        .poster {
+            overflow: hidden;
+            border-radius: 1rem;
+            position: relative;
+            border: 0.1rem solid rgb(136, 142, 182);
+        }
+
+        .poster img {
+            height: 50vh;
+            aspect-ratio: 2.15/3;
+            display: block;
+            filter: blur(30px);
+            transform: scale(1.1);
+            transform-origin: center;
+            -webkit-user-drag: none;
+        }
+
+        .guess {
+            margin-left: 1.7vw;
+            position: relative;
+            flex: none;
+            width: fit-content;
+        }
+
+        .correct, .incorrect {
+            font-size: 2rem;
+            font-weight: lighter;
+            color: rgba(255, 255, 255, 0.422);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        #correctMovieName, #correctMovieName2 {
+            font-weight: bold;
+            color: white;
+        }
+
+        .progress { display: block; }
+
+        .attempt {
+            margin-top: 2vh;
+            background-color: rgba(255, 221, 0, 0.365);
+            border: 0.1rem solid rgba(255, 221, 0, 0.701);
+            color: rgb(255, 221, 0);
+            border-radius: 1rem;
+            padding: 0.7rem;
+            display: none;
+        }
+
+        .square {
+            margin-top: 2vh;
+            gap: 0.2vw;
+            justify-content: center;
+        }
+
+        .square div {
+            width: 1.6vw;
+            height: 1.6vw;
+            border-radius: 0.3rem;
+            background-color: rgb(19, 21, 42);
+        }
+
+        .search {
+            width: 20vw;
+            background-color: rgb(213, 213, 213);
+            border-top-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.5rem;
+            padding: 0.5rem;
+            border: none;
+            outline: none;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+        }
+
+        button:focus {
+            outline: none;
+        }
+
+        .submit {
+            border-top-right-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            background-color: rgb(6, 114, 54);
+            color: white;
+            padding: 0.6rem;
+        }
+
+        .submit:hover {
+            background-color: rgb(4, 87, 41);
+        }
+
+        .prev, .next {
+            width: 100%;
+            height: 4vh;
+            font-weight: bold;
+            font-size: 1rem;
+            background-color: rgb(56, 61, 101);
+            color: rgb(136, 142, 182);
+            border: 0.1rem solid rgb(136, 142, 182);
+            border-top: none;
+        }
+
+        .prev:disabled, .next:disabled {
+            background-color: rgb(35, 38, 66);
+            color: rgb(59, 62, 86);
+            cursor: not-allowed;
+        }
+
+        .prev {
+            border-bottom-left-radius: 0.7rem;
+        }
+
+        .next {
+            border-bottom-right-radius: 0.7rem;
+            border-left: none;
+        }
+
+        .wrong, .skipped {
+            background-color: rgba(255, 0, 0, 0.365) !important;
+            border: 0.1rem solid rgba(255, 0, 0, 0.701) !important;
+            color: rgb(255, 100, 100) !important;
+        }
+
+        .suggestions {
+            position: absolute;
+            background-color: rgb(230, 230, 230);
+            width: 20vw;
+            border-radius: 0.5rem;
+            margin-top: 2.4rem;
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            overflow: scroll;
+            max-height: 30vh;
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+        }
+
+        .suggestions::-webkit-scrollbar {
+            display: none;
+        }
+
+        .suggestions div {
+            padding: 0.5rem;
+            cursor: pointer;
+            color: black;
+        }
+
+        .suggestions div:hover {
+            background-color: rgb(200, 200, 200);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="container2 2column">
+            <div class="row">
+                <h2>Poster #<span id="posterNum">1</span></h2>
+            </div>
+            <div class="row main">
+                <div class="poster">
+                    <img id="posterImg" src="movies/mersal.jpg" alt="poster">
+                </div>
+                <div class="column guess">
+                    <div class="progress">
+                        <div class="row">
+                            <input type="text" class="search" placeholder="Enter movie name...">
+                            <button class="submit">SUBMIT</button>
+                            <div class="suggestions"></div>
+                        </div>   
+                        <div class="attempts">
+                            <div class="attempt"></div>
+                            <div class="attempt"></div>
+                            <div class="attempt"></div>
+                            <div class="attempt"></div>
+                            <div class="attempt"></div>
+                            <div class="attempt"></div>
+                        </div> 
+                    </div>            
+                    <div class="correct column">
+                        <div>
+                            <div>You got it!</div>
+                            <div id="correctMovieName">Movie Name</div>
+                            <div class="square row"></div>
+                        </div>
+                    </div>
+                    <div class="incorrect column">
+                        <div>
+                            <div>The answer was</div>
+                            <div id="correctMovieName2">Movie Name</div>
+                            <div class="square row"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <button class="prev">PREVIOUS</button>
+            <button class="next">NEXT</button>
+        </div>
+    </div>
+
+    <script>
+        const movies = {};
+        let currentIndex = 1;
+        let currentAttempts = 0;
+        let attemptHistory = [];
+        let blurAmount = 30; // initial blur in px
+
+        function addMovie(movie, poster) {
+            const index = Object.keys(movies).length + 1;
+            const baseName = poster.split('/').pop().replace(/\.(jpg|jpeg|png)$/i, '');
+            movies[index] = { name: movie, poster: poster, basename: baseName };
+        }
+
+        // Add movies
+        addMovie('Ghilli', 'movies/ghilli.jpg');
+        addMovie('Ayalaan', 'movies/ayalaan.jpg');
+        addMovie('Vada Chennai', 'movies/vada_chennai.jpg');
+        addMovie('Maari', 'movies/maari.jpg');
+        addMovie('Amaran', 'movies/amaran.jpg');
+        addMovie('Enthiran', 'movies/enthiran.jpg');
+        addMovie('Lubber Pandhu', 'movies/lubber_pandhu.jpg');
+        addMovie('Singam', 'movies/singam.jpg');
+        addMovie('Meiyazhagan', 'movies/meiyazhagan.jpg');
+        addMovie('Anniyan', 'movies/anniyan.jpg');
+        addMovie('Good Night', 'movies/good_night.jpg');
+        addMovie('Dude', 'movies/dude.jpg');
+        addMovie('Thuppakki', 'movies/thuppakki.jpg');
+        addMovie('Chennai 600028', 'movies/chennai 600028.jpg');
+        addMovie('Vikram', 'movies/vikram.jpg');
+        addMovie('Love Today', 'movies/love_today.jpg');
+        addMovie('Kaththi', 'movies/kaththi.jpg');
+        addMovie('Jigarthanda', 'movies/jigarthanda.jpg');
+        addMovie('Bigil', 'movies/bigil.jpg');
+        addMovie('96', 'movies/96.jpg');
+        addMovie('Motta Shiva Ketta Shiva', 'movies/motta_shiva_ketta_shiva.jpg');
+        addMovie('Veeram', 'movies/veeram.jpg');
+        addMovie('Ratsasan', 'movies/ratsasan.jpg');
+        addMovie('Master', 'movies/master.jpg');
+        addMovie('Soorarai Pottru', 'movies/soorarai_pottru.jpg');
+        addMovie('Maari 2', 'movies/maari2.jpg');
+        addMovie('Petta', 'movies/petta.jpg');
+        addMovie('Comali', 'movies/comali.jpg');
+        addMovie('Sivaji', 'movies/sivaji.jpg');
+        addMovie('Chithha', 'movies/chithha.jpg');
+        addMovie('Thani Oruvan', 'movies/thani_oruvan.jpg');
+        addMovie('Singam 2', 'movies/singam2.jpg');
+        addMovie('Raayan', 'movies/raayan.jpg');
+        addMovie('Kabali', 'movies/kabali.jpg');
+        addMovie('Parking', 'movies/parking.jpg');
+        addMovie('Viswasam', 'movies/viswasam.jpg');
+        addMovie('Kaaka Muttai', 'movies/kaaka_muttai.jpg');
+        addMovie('Sarkar', 'movies/sarkar.jpg');
+        addMovie('Nanban', 'movies/nanban.jpg');
+        addMovie('Maharaja', 'movies/maharaja.jpg');
+        addMovie('Vedalam', 'movies/vedalam.jpg');
+        addMovie('Naanum Rowdy Dhaan', 'movies/naanum_rowdy_dhaan.jpg');
+        addMovie('Singam 3', 'movies/singam3.jpg');
+        addMovie('Vettaiyan', 'movies/vettaiyan.jpg');
+        addMovie('Mersal', 'movies/mersal.jpg');
+        addMovie('Aruvi', 'movies/aruvi.jpg');
+        addMovie('Theri', 'movies/theri.jpg');
+        addMovie('Ponniyin Selvan Part-1', 'movies/ps1.jpg');
+        addMovie('Maaveeran', 'movies/maaveeran.jpg');
+        addMovie('Jailer', 'movies/jailer.jpg');
+        addMovie('Muthuramalingam', 'movies/muthuramalingam.jpg');
+        addMovie('Maan Karate', 'movies/maan_karate.jpg');
+        addMovie('Vivegam', 'movies/vivegam.jpg');
+        addMovie('Doctor', 'movies/doctor.jpg');
+        addMovie('Ayan', 'movies/ayan.jpg');
+        addMovie('Ponniyin Selvan Part-2', 'movies/ps2.jpg');
+        addMovie('Leo', 'movies/leo.jpg');
+        addMovie('Sathuranga Vettai', 'movies/sathuranga_vettai.jpg');
+        addMovie('Kaithi', 'movies/kaithi.jpg');
+        addMovie('Thiruchitrambalam', 'movies/thiruchitrambalam.jpg');
+        addMovie('Billa', 'movies/billa.jpg');
+        addMovie('Varisu', 'movies/varisu.jpg');
+        addMovie('Asuran', 'movies/asuran.jpg');
+        addMovie('Vikram Vedha', 'movies/vikram_vedha.jpg');
+        addMovie('Deiva Thirumagal', 'movies/deiva_thirumagal.jpg');
+        addMovie('Mankatha', 'movies/mankatha.jpg');
+        addMovie('Vellaiyilla Pattathari', 'movies/vip.jpg');
+        addMovie('Jigarthanda Double X', 'movies/jigarthanda 2.jpg');
+        addMovie('I', 'movies/i.jpg');
+        addMovie('Darbar', 'movies/darkar.jpg');
+        addMovie('Raja Rani', 'movies/raja_rani.jpg');
+        addMovie('Beast', 'movies/beast.jpg');
+        addMovie('2.0', 'movies/enthiran 2.0.jpg');
+        addMovie('Pizza', 'movies/pizza.jpg');
+        addMovie('Soodhu Kavvum', 'movies/soodhu_kavvum.jpg');
+        addMovie('Yennai Arindhaal', 'movies/yennai_arindhaal.jpg');
+        addMovie('Captain Miller', 'movies/captain_miller.jpg');
+        addMovie('Vellaiyilla Pattathari 2', 'movies/vip2.jpg');
+        addMovie('Indian', 'movies/indian.jpg');
+        addMovie('Billa II', 'movies/billa 2.jpg');
+        addMovie('Maanaadu', 'movies/maanaadu.jpg');
+        addMovie('Ko', 'movies/ko.jpg');
+        addMovie('Blue Star', 'movies/blue_star.jpg');
+        addMovie('Thunivu', 'movies/thunivu.jpg');
+        addMovie('Mahaan', 'movies/mahaan.jpg');
+        addMovie('24', 'movies/24.jpg');
+        addMovie('Thanga Magan', 'movies/thanga_magan.jpg');
+        addMovie('Irudhi Suttru', 'movies/irudhi_suttru.jpg');
+        addMovie('Kanguva', 'movies/kanguva.jpg');
+        addMovie('Namma Veettu Pillai', 'movies/namma_veettu_pillai.jpg');
+        addMovie('Viduthalai', 'movies/viduthalai.jpg');
+        addMovie('Kaala', 'movies/kaala.jpg');
+        addMovie('Indian 2', 'movies/indian2.jpg');
+        addMovie('Saamy', 'movies/saamy.jpg');
+        addMovie('O Kadhal Kanmani', 'movies/o_kadhal_kanmani.jpg');
+        addMovie('Coolie', 'movies/coolie.jpg');
+        addMovie('Viduthalai Part 2', 'movies/viduthalai 2.jpg');
+        addMovie('Muni', 'movies/muni.jpg');
+        addMovie('Jilla', 'movies/jilla.jpg');
+        addMovie('The Greatest of All Time', 'movies/goat.jpg');
+        addMovie('Rajini Murugan', 'movies/rajini_murugan.jpg');
+        addMovie('Sardar', 'movies/sardar.jpg');
+        addMovie('Kanchana', 'movies/muni 2.jpg');
+        addMovie('Raavanan', 'movies/raavanan.jpg');
+        addMovie('Bairavaa', 'movies/bairavaa.jpg');
+        addMovie('Vasool Raja MBBS', 'movies/vasool_raja_mbbs.jpg');
+        addMovie('Theeran Adhigaram Ondru', 'movies/theeran_adhigaram_ondru.jpg');
+        addMovie('Kanchana 2', 'movies/muni 3.jpg');
+        addMovie('Oru Kal Oru Kannadi', 'movies/okok.jpg');
+        addMovie('Lingaa', 'movies/lingaa.jpg');
+        addMovie('Aranmanai', 'movies/aranmanai.jpg');
+        addMovie('Saamy Square', 'movies/saamy 2.jpg');
+        addMovie('LKG', 'movies/lkg.jpg');
+        addMovie('Kanchana 3', 'movies/muni 4.jpg');
+        addMovie('Chennai 600028 II', 'movies/chennai 600028 2.jpg');
+        addMovie('Kaathuvaakula Rendu Kaadhal', 'movies/kvk.jpg');
+        addMovie('Kumki', 'movies/kumki.jpg');
+        addMovie('Aranmanai 2', 'movies/aranmanai2.jpg');
+        addMovie('7aum Arivu', 'movies/7aum_arivu.jpg');
+        addMovie('Remo', 'movies/remo.jpg');
+        addMovie('Pathu Thala', 'movies/pathu_thala.jpg');
+        addMovie('Anjaan', 'movies/anjaan.jpg');
+        addMovie('Sulthan', 'movies/sulthan.jpg');
+        addMovie('Aranmanai 3', 'movies/aranmanai3.jpg');
+        addMovie('Vaanam', 'movies/vaanam.jpg');
+        addMovie('Puli', 'movies/puli.jpg');
+        addMovie('Garudan', 'movies/garudan.jpg');
+        addMovie('Kadaikutty Singam', 'movies/kadaikutty_singam.jpg');
+        addMovie('Aranmanai 4', 'movies/aranmanai4.jpg');
+        addMovie('Paiyaa', 'movies/paiyaa.jpg');
+        addMovie('Tourist Family', 'movies/tourist_family.jpg');
+        addMovie('Anegan', 'movies/anegan.jpg');
+        addMovie('Ko 2', 'movies/ko2.jpg');
+        addMovie('Komban', 'movies/komban.jpg');
+        addMovie('Sathuranga Vettai 2', 'movies/sathuranga_vettai2.jpg');
+        addMovie('Velaikkaran', 'movies/velaikkaran.jpg');
+        addMovie('Kuruvi', 'movies/kuruvi.jpg');
+        addMovie('Maragadha Naanayam', 'movies/maragadha_naanayam.jpg');
+        addMovie('Soodhu Kavvum 2', 'movies/soodhu_kavvum2.jpg');
+        addMovie('Varuthapadatha Valibar Sangam', 'movies/varuthapadatha_valibar_sangam.jpg');
+        addMovie('Imaikkaa Nodigal', 'movies/imaikkaa_nodigal.jpg');
+        addMovie('Massu Engira Masilamani', 'movies/masss.jpg');
+        addMovie('Endrendrum Punnagai', 'movies/endrendrum_punnagai.jpg');
+        addMovie('Bogan', 'movies/bogan.jpg');
+        addMovie('Kaaki Sattai', 'movies/kaaki_sattai.jpg');
+        addMovie('Friends', 'movies/friends.jpg');
+        addMovie('Tamizh Padam', 'movies/tamizh_padam.jpg');
+        addMovie('Jil Jung Juk', 'movies/jil_jung_juk.jpg');
+        addMovie('Kavan', 'movies/kavan.jpg');
+        addMovie('Biriyani', 'movies/biriyani.jpg');
+        addMovie('Tamizh Padam 2.0', 'movies/tamizh_padam2.0.jpg');
+        addMovie('Hero', 'movies/hero.jpg');
+        addMovie('Engeyum Kadhal', 'movies/engeyum_kadhal.jpg');
+        addMovie('Nilavuku En Mel Ennadi Kobam', 'movies/neek.jpg');
+        addMovie('Kalakalappu', 'movies/kalakalappu.jpg');
+        addMovie('Pizza II: Villa', 'movies/pizza 2.jpg');
+        addMovie('Meesaya Murukku', 'movies/meesaya_murukku.jpg');
+        addMovie('Star', 'movies/star.jpg');
+        addMovie('Kalakalappu 2', 'movies/kalakalappu2.jpg');
+        addMovie('Devi', 'movies/devi.jpg');
+        addMovie('Mr. Local', 'movies/mr local.jpg');
+        addMovie('Natpe Thunai', 'movies/natpe_thunai.jpg');
+        addMovie('Lift', 'movies/lift.jpg');
+        addMovie('Devi 2', 'movies/devi2.jpg');
+        addMovie('Mookuthi Amman', 'movies/mookuthi_amman.jpg');
+        addMovie('Aambala', 'movies/aambala.jpg');
+        addMovie('Brother', 'movies/brother.jpg');
+        addMovie('Naan Sirithaal', 'movies/naan_sirithaal.jpg');
+        addMovie('Vasuvum Saravananum Onna Padichavanga', 'movies/vsop.jpg');
+        addMovie('Mookuthi Amman 2', 'movies/mookuthi_amman2.jpeg');
+        addMovie('Veeran', 'movies/veeran.jpg');
+        addMovie('Retro', 'movies/retro.jpg');
+        addMovie('Thodari', 'movies/thodari.jpg');        
+        addMovie('Parasakthi', 'movies/parasakthi.jpg');
+        addMovie('Kathakali', 'movies/kathakali.jpg');
+        addMovie('Mandela', 'movies/mandela.jpg');
+        addMovie('Dragon', 'movies/dragon.jpg');
+        addMovie('Kayal', 'movies/kayal.jpg');
+        addMovie('Gurkha', 'movies/gurkha.jpg');
+        addMovie('Monster', 'movies/monster.jpg');
+        addMovie('Vanavarayan Vallavarayan', 'movies/vanavarayan_vallavarayan.jpg');
+        addMovie('Dada', 'movies/dada.jpg');
+        addMovie('Lover', 'movies/lover.jpg');
+        addMovie('Sura', 'movies/sura.jpeg');
+        addMovie('Vadakkupatti Ramasamy', 'movies/vadakkupatti_ramasamy.jpg');
+        addMovie('Kudumbasthan', 'movies/kudumbasthan.jpg');
+        addMovie('Veera Dheera Sooran Part 1', 'movies/vds1.png');
+        addMovie('Thalaivan Thalaivii', 'movies/thalaivan_thalaivii.jpg');
+        addMovie('Vaa Vaathiyaar', 'movies/vaa_vaathiyaar.jpg');
+        addMovie('Diesel', 'movies/diesel.jpeg');
+        addMovie('Madharasi', 'movies/madharasi.jpg');
+        addMovie('Karuppu', 'movies/karuppu.jpg');        
+        addMovie('Mark Anthony', 'movies/markanthony.jpg');
+        addMovie('Love Insurance Kompany', 'movies/lik.jpg');
+        addMovie('Bison', 'movies/bison.jpg');
+        addMovie('Vidaamuyarchi', 'movies/vidaamuyarchi.jpg');
+        addMovie('Ace', 'movies/ace.jpg');
+        addMovie('Jana Nayagan', 'movies/jana_nayagan.jpg');
+        addMovie('Vanamagan', 'movies/vanamagan.jpg');
+        addMovie('Sardar 2', 'movies/sardar2.jpg');
+        addMovie('Jailer 2', 'movies/jailer2.jpg');
+        addMovie('Jeeva', 'movies/jeeva.jpg');
+        addMovie('Thug Life', 'movies/thug_life.jpg');
+
+        // currentIndex = 5;
+        // currentIndex = Object.keys(movies).length;
+
+        const posterNum = document.getElementById("posterNum");
+        const posterImg = document.getElementById("posterImg");
+        const search = document.querySelector(".search");
+        const submit = document.querySelector(".submit");
+        const prevBtn = document.querySelector(".prev");
+        const nextBtn = document.querySelector(".next");
+        const attemptsDiv = document.querySelectorAll(".attempt");
+        const progressDiv = document.querySelector(".progress");
+        const correctDiv = document.querySelector(".correct");
+        const incorrectDiv = document.querySelector(".incorrect");
+        const correctMovieName = document.getElementById("correctMovieName");
+        const correctMovieName2 = document.getElementById("correctMovieName2");
+        const suggestionBox = document.querySelector(".suggestions");
+
+        function loadMovie() {
+            const movie = movies[currentIndex];
+            posterNum.textContent = currentIndex;
+            currentAttempts = 0;
+            attemptHistory = [];
+            blurAmount = 30; // reset blur
+            updateImageEffects();
+            search.value = "";
+
+            attemptsDiv.forEach(a => {
+                a.textContent = "";
+                a.style.display = "none";
+                a.classList.remove("skipped", "wrong");
+            });
+
+            progressDiv.style.display = "block";
+            correctDiv.style.display = "none";
+            incorrectDiv.style.display = "none";
+
+            prevBtn.disabled = currentIndex === 1;
+            nextBtn.disabled = currentIndex === Object.keys(movies).length;
+
+            posterImg.style.visibility = 'hidden';
+
+            posterImg.onload = function() {
+                updateImageEffects();
+                posterImg.style.visibility = 'visible';
+
+                const colorThief = new ColorThief();
+                let dominantColor = colorThief.getColor(posterImg); 
+                posterImg.parentElement.style.backgroundColor = `rgb(${dominantColor[0]}, ${dominantColor[1]}, ${dominantColor[2]})`;
+            };
+
+            posterImg.src = movie.poster;
+        }
+
+
+        function updateSquares(container) {
+            const squareRow = container.querySelector(".square");
+            squareRow.innerHTML = "";
+            for (let i = 0; i < 6; i++) {
+                const sq = document.createElement("div");
+                const status = attemptHistory[i];
+                if (status === "correct") sq.style.backgroundColor = "rgb(0, 200, 0)";
+                else if (status === "skipped" || status === "wrong") sq.style.backgroundColor = "rgb(200, 0, 0)";
+                else sq.style.backgroundColor = "rgb(19, 21, 42)";
+                squareRow.appendChild(sq);
+            }
+        }
+
+        function updateImageEffects() {
+            const scale = 1.1 - (30 - blurAmount) * 0.003; 
+            posterImg.style.filter = `blur(${blurAmount}px)`;
+            posterImg.style.transform = `scale(${scale})`;
+        }
+
+        function handleSubmit() {
+            const userGuess = search.value.trim();
+            const movie = movies[currentIndex];
+            if (!movie) return;
+            if (currentAttempts >= 6) return;
+
+            const attemptBox = attemptsDiv[currentAttempts];
+            attemptBox.style.display = "block";
+
+            let correct = false;
+
+            if (userGuess === "") {
+                attemptBox.textContent = "Skipped";
+                attemptBox.classList.add("skipped");
+                attemptHistory.push("skipped");
+            } else if (userGuess.toLowerCase() === movie.name.toLowerCase()) {
+                attemptBox.textContent = userGuess;
+                attemptHistory.push("correct");
+                correct = true;
+            } else {
+                attemptBox.textContent = userGuess;
+                attemptBox.classList.add("wrong");
+                attemptHistory.push("wrong");
+            }
+
+            currentAttempts++;
+
+            if (correct) {
+                blurAmount = 0;
+                updateImageEffects();
+                progressDiv.style.display = "none";
+                incorrectDiv.style.display = "none";
+                correctDiv.style.display = "flex";
+                correctMovieName.textContent = movie.name;
+                updateSquares(correctDiv);
+                updateLayout();
+                return;
+            }
+
+            // Decrease blur each attempt
+            blurAmount = Math.max(0, blurAmount - 4.5);
+            updateImageEffects();
+
+            if (currentAttempts === 6 && attemptHistory[5] !== "correct") {
+                blurAmount = 0;
+                updateImageEffects();
+                progressDiv.style.display = "none";
+                correctDiv.style.display = "none";
+                incorrectDiv.style.display = "flex";
+                correctMovieName2.textContent = movie.name;
+                updateSquares(incorrectDiv);
+                updateLayout();
+            }
+
+            search.value = "";
+            suggestionBox.style.display = "none";
+            search.focus();
+        }
+
+        function changeMovie(dir) {
+            currentIndex += dir;
+            if (currentIndex < 1) currentIndex = 1;
+            if (currentIndex > Object.keys(movies).length) currentIndex = Object.keys(movies).length;
+            localStorage.setItem('currentPoster', currentIndex);
+            loadMovie();
+            search.focus();
+        }
+
+        function updateLayout() {
+            const mainRow = document.querySelector('.row.main');
+            if (correctDiv.style.display === 'flex' || incorrectDiv.style.display === 'flex') {
+                mainRow.style.justifyContent = 'none';
+            } else {
+                mainRow.style.justifyContent = 'space-between';
+            }
+        }
+
+
+        function showSuggestions(value) {
+            suggestionBox.innerHTML = "";
+            if (value.length < 1) {
+                suggestionBox.style.display = "none";
+                return;
+            }
+
+            const filtered = Object.values(movies)
+                .filter(m => 
+                    m.name.toLowerCase().includes(value.toLowerCase()) || 
+                    m.basename.toLowerCase().includes(value.toLowerCase())
+                )
+                .sort((a, b) => a.name.localeCompare(b.name));
+
+            if (filtered.length === 0) {
+                suggestionBox.style.display = "none";
+                return;
+            }
+
+            filtered.forEach(m => {
+                const div = document.createElement("div");
+                div.textContent = m.name;
+                div.addEventListener("click", () => {
+                    search.value = m.name;
+                    suggestionBox.style.display = "none";
+                    search.focus();
+                });
+                suggestionBox.appendChild(div);
+            });
+            suggestionBox.style.display = "flex";
+        }
+
+        function matchWidth() {
+            const progressWidth = progressDiv.offsetWidth;
+            correctDiv.style.width = progressWidth + 'px';
+            incorrectDiv.style.width = progressWidth + 'px';
+        }
+
+        correctDiv.style.display = 'flex';
+        matchWidth();
+
+        incorrectDiv.style.display = 'flex';
+        matchWidth();
+
+        submit.addEventListener("click", handleSubmit);
+        nextBtn.addEventListener("click", () => changeMovie(1));
+        prevBtn.addEventListener("click", () => changeMovie(-1));
+        search.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") handleSubmit();
+        });
+        search.addEventListener("input", (e) => showSuggestions(e.target.value));
+
+        const savedIndex = localStorage.getItem('currentPoster');
+        if (savedIndex) {
+            currentIndex = parseInt(savedIndex, 10);
+        }
+        loadMovie();
+        search.focus();
+    </script>
+</body>
+</html>
