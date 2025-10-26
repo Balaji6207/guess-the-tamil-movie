@@ -100,6 +100,30 @@
             border-radius: 1rem;
             padding: 0.7rem;
             display: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .attempt.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255, 255, 0, 0.6);
+        }
+
+        .timer-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background-color: rgba(166, 179, 116, 0.237);
+            transition: width linear;
+        }
+
+        .timer-text {
+            position: relative;
+            z-index: 1;
+            font-weight: bold;
         }
 
         .square {
@@ -263,6 +287,8 @@
         let currentAttempts = 0;
         let attemptHistory = [];
         let blurAmount = 30; // initial blur in px
+        let timerInterval = null;
+        let currentTimerSeconds = 0;
 
         function addMovie(movie, poster) {
             const index = Object.keys(movies).length + 1;
@@ -340,7 +366,7 @@
         addMovie('Vellaiyilla Pattathari', 'movies/vip.jpg');
         addMovie('Jigarthanda Double X', 'movies/jigarthanda 2.jpg');
         addMovie('I', 'movies/i.jpg');
-        addMovie('Darbar', 'movies/darkar.jpg');
+        addMovie('Darbar', 'movies/darbar.jpg');
         addMovie('Raja Rani', 'movies/raja_rani.jpg');
         addMovie('Beast', 'movies/beast.jpg');
         addMovie('2.0', 'movies/enthiran 2.0.jpg');
@@ -353,6 +379,31 @@
         addMovie('Billa II', 'movies/billa 2.jpg');
         addMovie('Maanaadu', 'movies/maanaadu.jpg');
         addMovie('Ko', 'movies/ko.jpg');
+        addMovie('Diesel', 'movies/diesel.jpeg');
+        addMovie('Madharasi', 'movies/madharasi.jpg');
+        addMovie('Karuppu', 'movies/karuppu.jpg');        
+        addMovie('Komban', 'movies/komban.jpg');
+        addMovie('Sathuranga Vettai 2', 'movies/sathuranga_vettai2.jpg');
+        addMovie('Velaikkaran', 'movies/velaikkaran.jpg');
+        addMovie('Friends', 'movies/friends.jpg');
+        addMovie('Tamizh Padam', 'movies/tamizh_padam.jpg');
+        addMovie('Kuruvi', 'movies/kuruvi.jpg');
+        addMovie('Maragadha Naanayam', 'movies/maragadha_naanayam.jpg');
+        addMovie('Soodhu Kavvum 2', 'movies/soodhu_kavvum2.jpg');
+        addMovie('Varuthapadatha Valibar Sangam', 'movies/varuthapadatha_valibar_sangam.jpg');
+        addMovie('Imaikkaa Nodigal', 'movies/imaikkaa_nodigal.jpg');
+        addMovie('Ace', 'movies/ace.jpg');
+        addMovie('Jana Nayagan', 'movies/jana_nayagan.jpg');
+        addMovie('Vanamagan', 'movies/vanamagan.jpg');
+        addMovie('Sardar 2', 'movies/sardar2.jpg');
+        addMovie('Jailer 2', 'movies/jailer2.jpg');
+        addMovie('Massu Engira Masilamani', 'movies/masss.jpg');
+        addMovie('Endrendrum Punnagai', 'movies/endrendrum_punnagai.jpg');
+        addMovie('Bogan', 'movies/bogan.jpg');
+        addMovie('Kaaki Sattai', 'movies/kaaki_sattai.jpg');
+        addMovie('Jil Jung Juk', 'movies/jil_jung_juk.jpg');
+        addMovie('Kavan', 'movies/kavan.jpg');
+        addMovie('Biriyani', 'movies/biriyani.jpg');
         addMovie('Blue Star', 'movies/blue_star.jpg');
         addMovie('Thunivu', 'movies/thunivu.jpg');
         addMovie('Mahaan', 'movies/mahaan.jpg');
@@ -404,23 +455,6 @@
         addMovie('Tourist Family', 'movies/tourist_family.jpg');
         addMovie('Anegan', 'movies/anegan.jpg');
         addMovie('Ko 2', 'movies/ko2.jpg');
-        addMovie('Komban', 'movies/komban.jpg');
-        addMovie('Sathuranga Vettai 2', 'movies/sathuranga_vettai2.jpg');
-        addMovie('Velaikkaran', 'movies/velaikkaran.jpg');
-        addMovie('Kuruvi', 'movies/kuruvi.jpg');
-        addMovie('Maragadha Naanayam', 'movies/maragadha_naanayam.jpg');
-        addMovie('Soodhu Kavvum 2', 'movies/soodhu_kavvum2.jpg');
-        addMovie('Varuthapadatha Valibar Sangam', 'movies/varuthapadatha_valibar_sangam.jpg');
-        addMovie('Imaikkaa Nodigal', 'movies/imaikkaa_nodigal.jpg');
-        addMovie('Massu Engira Masilamani', 'movies/masss.jpg');
-        addMovie('Endrendrum Punnagai', 'movies/endrendrum_punnagai.jpg');
-        addMovie('Bogan', 'movies/bogan.jpg');
-        addMovie('Kaaki Sattai', 'movies/kaaki_sattai.jpg');
-        addMovie('Friends', 'movies/friends.jpg');
-        addMovie('Tamizh Padam', 'movies/tamizh_padam.jpg');
-        addMovie('Jil Jung Juk', 'movies/jil_jung_juk.jpg');
-        addMovie('Kavan', 'movies/kavan.jpg');
-        addMovie('Biriyani', 'movies/biriyani.jpg');
         addMovie('Tamizh Padam 2.0', 'movies/tamizh_padam2.0.jpg');
         addMovie('Hero', 'movies/hero.jpg');
         addMovie('Engeyum Kadhal', 'movies/engeyum_kadhal.jpg');
@@ -460,18 +494,10 @@
         addMovie('Veera Dheera Sooran Part 1', 'movies/vds1.png');
         addMovie('Thalaivan Thalaivii', 'movies/thalaivan_thalaivii.jpg');
         addMovie('Vaa Vaathiyaar', 'movies/vaa_vaathiyaar.jpg');
-        addMovie('Diesel', 'movies/diesel.jpeg');
-        addMovie('Madharasi', 'movies/madharasi.jpg');
-        addMovie('Karuppu', 'movies/karuppu.jpg');        
         addMovie('Mark Anthony', 'movies/markanthony.jpg');
         addMovie('Love Insurance Kompany', 'movies/lik.jpg');
         addMovie('Bison', 'movies/bison.jpg');
         addMovie('Vidaamuyarchi', 'movies/vidaamuyarchi.jpg');
-        addMovie('Ace', 'movies/ace.jpg');
-        addMovie('Jana Nayagan', 'movies/jana_nayagan.jpg');
-        addMovie('Vanamagan', 'movies/vanamagan.jpg');
-        addMovie('Sardar 2', 'movies/sardar2.jpg');
-        addMovie('Jailer 2', 'movies/jailer2.jpg');
         addMovie('Jeeva', 'movies/jeeva.jpg');
         addMovie('Thug Life', 'movies/thug_life.jpg');
 
@@ -501,10 +527,17 @@
             updateImageEffects();
             search.value = "";
 
+            // Clear any existing timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
             attemptsDiv.forEach(a => {
                 a.textContent = "";
                 a.style.display = "none";
-                a.classList.remove("skipped", "wrong");
+                a.classList.remove("skipped", "wrong", "active");
+                a.innerHTML = "";
             });
 
             progressDiv.style.display = "block";
@@ -526,6 +559,9 @@
             };
 
             posterImg.src = movie.poster;
+            
+            // Start timer for first attempt
+            startTimer();
         }
 
 
@@ -548,14 +584,93 @@
             posterImg.style.transform = `scale(${scale})`;
         }
 
+        function getTimerDuration() {
+            // 60s for attempt 1, 50s for attempt 2, etc.
+            return 60 - (currentAttempts * 10);
+        }
+
+        function startTimer() {
+            if (currentAttempts >= 6) return;
+
+            const attemptBox = attemptsDiv[currentAttempts];
+            attemptBox.classList.add("active");
+            attemptBox.style.display = "flex";
+            
+            currentTimerSeconds = getTimerDuration();
+            const totalSeconds = currentTimerSeconds;
+
+            // Create timer bar and text
+            attemptBox.innerHTML = `
+                <div class="timer-bar" style="width: 100%;"></div>
+                <div class="timer-text">${currentTimerSeconds}s</div>
+            `;
+
+            const timerBar = attemptBox.querySelector(".timer-bar");
+            const timerText = attemptBox.querySelector(".timer-text");
+            
+            // Set transition duration
+            timerBar.style.transition = `width ${totalSeconds}s linear`;
+            
+            // Trigger animation
+            setTimeout(() => {
+                timerBar.style.width = "0%";
+            }, 50);
+
+            // Update timer text every second
+            timerInterval = setInterval(() => {
+                currentTimerSeconds--;
+                timerText.textContent = `${currentTimerSeconds}s`;
+
+                if (currentTimerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function handleTimeout() {
+            const attemptBox = attemptsDiv[currentAttempts];
+            attemptBox.classList.remove("active");
+            attemptBox.classList.add("skipped");
+            attemptBox.innerHTML = "Skipped";
+            attemptHistory.push("skipped");
+            currentAttempts++;
+
+            // Decrease blur
+            blurAmount = Math.max(0, blurAmount - 4.5);
+            updateImageEffects();
+
+            if (currentAttempts === 6) {
+                blurAmount = 0;
+                updateImageEffects();
+                progressDiv.style.display = "none";
+                correctDiv.style.display = "none";
+                incorrectDiv.style.display = "flex";
+                correctMovieName2.textContent = movies[currentIndex].name;
+                updateSquares(incorrectDiv);
+                updateLayout();
+            } else {
+                startTimer();
+            }
+        }
+
         function handleSubmit() {
             const userGuess = search.value.trim();
             const movie = movies[currentIndex];
             if (!movie) return;
             if (currentAttempts >= 6) return;
 
+            // Clear the timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
             const attemptBox = attemptsDiv[currentAttempts];
+            attemptBox.classList.remove("active");
             attemptBox.style.display = "block";
+            attemptBox.innerHTML = "";
 
             let correct = false;
 
@@ -600,6 +715,9 @@
                 correctMovieName2.textContent = movie.name;
                 updateSquares(incorrectDiv);
                 updateLayout();
+            } else {
+                // Start timer for next attempt
+                startTimer();
             }
 
             search.value = "";
